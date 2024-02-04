@@ -1,0 +1,19 @@
+{
+  "name": "@enrayned/discord-arts",
+  "version": "1.0.0",
+  "description": "Discord Arts",
+  "main": "./src/cjs/index.js",
+  "module": "./src/mjs/index.js",
+  "types": "./src/typings/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.esm.json && tsc -p tsconfig.json"
+  },
+  "author": "senesatka",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "canvas": "^2.11.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16"
+  }
+}

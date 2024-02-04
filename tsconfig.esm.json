@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "lib": ["ESNext"],
+    "moduleResolution": "Classic",
+    "target": "ESNext",
+    "module": "ESNext",
+    "esModuleInterop": true,
+    "declaration": true,
+    "outDir": "./src/mjs",
+    "declarationDir": "./src/typings"
+  },
+
+  "include": ["ts/**/*.ts", "./src/typings/**/*.d.ts"],
+  "exclude": ["node_modules", "test*"],
+  "rootDir": "./ts"
+}
