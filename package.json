@@ -11,6 +11,7 @@
   "author": "senesatka",
   "license": "Apache-2.0",
   "dependencies": {
+    "axios": "^1.6.7",
     "canvas": "^2.11.2"
   },
   "devDependencies": {
