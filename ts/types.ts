@@ -6,13 +6,15 @@ export type BorderRadius = number;
 
 export type Img = Image | string;
 
+export type Badge = Image | Array<Image> | "auto";
+
 export interface Border {
   borderColor?: BorderColor;
   borderSize?: BorderSize;
   borderRadius?: BorderRadius;
 }
 
-export type UserJson = {
+export interface UserJson {
   cache_expiry: number;
   cached: boolean;
   data: {
@@ -41,4 +43,4 @@ export type UserJson = {
   };
   presence: any;
   connections: any;
-};
+}

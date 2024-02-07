@@ -9,6 +9,7 @@ import {
 import { writeFile } from "fs/promises";
 import { circularImage, roundImage } from "./round";
 import {
+  Badge,
   Border,
   BorderColor,
   BorderRadius,
@@ -54,7 +55,7 @@ abstract class BaseImage {
     this.ctx.drawImage(img, 0, 0, img.width, img.height);
     return this;
   }
-  toBuffer() {
+  async toBuffer(): Promise<Buffer> {
     if (typeof this.border !== "undefined")
       return roundImage(this.canvas, this.border.borderRadius ?? 0, {
         borderColor: this.border.borderColor,
@@ -65,41 +66,100 @@ abstract class BaseImage {
 }
 
 export class RankImage extends BaseImage {
-  constructor() {
+  userId: string;
+  badge: Badge | undefined;
+  xp: number;
+  requiredXp: number;
+  level: number;
+  constructor(
+    { id }: { id: string },
+    xp: number,
+    requiredXp: number,
+    level: number
+  ) {
     super();
+    this.userId = id;
+    this.xp = xp;
+    this.requiredXp = requiredXp;
+    this.level = level;
   }
-  async setUser({ id }: { id: string }) {
-    const data = (await axios.get(`https://japi.rest/discord/v1/user/${id}`))
-      .data as UserJson;
+  setBadge(badge: Badge) {
+    if (badge == "auto") {
+    }
+  }
+
+  async toBuffer(): Promise<Buffer> {
+    const data = (
+      await axios.get(`https://japi.rest/discord/v1/user/${this.userId}`)
+    ).data as UserJson;
     const avatar = await loadImage(data.data.avatarURL + "?size=2048");
-    this.ctx.drawImage(avatar, 0, 0, this.width / 3, this.width / 3);
-    //TODO burdaki user this e eklenecek ve toBuffer editlenerek en son olarak avatar eklenecek
-    // await writeFile(
-    //   "test.png",
-    //   circularImage(avatar, {
-    //     borderColor: "#fff",
-    //     borderWidth: 30,
-    //   }).toBuffer(),
-    //   "base64"
-    // );
-    // await writeFile(
-    //   "test.png",
-    //   roundImage(avatar, 50, {
-    //     borderColor: "#fff",
-    //     borderWidth: 20,
-    //   }).toBuffer(),
-    //   "base64"
-    // );
-    return this;
+    this.ctx.drawImage(
+      circularImage(
+        avatar,
+        this.border
+          ? {
+              borderColor: this.border.borderColor,
+              borderWidth: (this.border.borderSize ?? 0) * 2,
+            }
+          : { borderWidth: 0 }
+      ),
+      (this.height * 1) / 5 / 2,
+      (this.height * 1) / 5 / 2,
+      (this.height * 4) / 5,
+      (this.height * 4) / 5
+    );
+    this.ctx.beginPath();
+    const xpBarHeight = this.height / 12;
+    const xpBarWidth = ((this.width - this.height) * 7) / 10;
+    const xpBarX =
+      this.height +
+      ((this.width - this.height) * 1.5) / 10; /* (this.height * 5.5) / 5 */
+    const xpBarY = (this.height * 4.5) / 5 - xpBarHeight;
+
+    const xpBarBorderWidth = (xpBarHeight * 0.5) / 5;
+
+    this.ctx.fillStyle = this.border?.borderColor ?? "#fff";
+    this.ctx.fillRect(xpBarX, xpBarY, xpBarWidth, xpBarHeight);
+    this.ctx.fillStyle = "#fff";
+
+    this.ctx.fillRect(
+      xpBarX + xpBarBorderWidth,
+      xpBarY + xpBarBorderWidth,
+      ((xpBarWidth - xpBarBorderWidth * 2) * this.xp) / this.requiredXp,
+      xpBarHeight - xpBarBorderWidth * 2
+    );
+    this.ctx.closePath();
+    const username = data.data.username;
+    this.ctx.font = "70px sans-serif";
+    const usernameMeasure = this.ctx.measureText(username);
+    this.ctx.fillText(
+      username,
+      xpBarX + xpBarWidth / 2 - usernameMeasure.width / 2,
+      xpBarY - this.height / 10
+    );
+    this.ctx.font = "40px sans-serif";
+    const xpText = `${this.xp}/${this.requiredXp}`;
+    const xpTextMeasure = this.ctx.measureText(xpText);
+    this.ctx.fillText(
+      xpText,
+      xpBarX + xpBarWidth / 2 - xpTextMeasure.width / 2,
+      xpBarY + (xpBarHeight - xpBarBorderWidth)
+    );
+
+    return super.toBuffer();
   }
-  setBadge(badge: Image | Array<Image> | "auto") {}
 }
 (async () => {
-  const avatar = await loadImage(
-    "https://www.mnrubber.com/wp-content/uploads/2020/09/mnrp-home.jpg"
-  );
-  const image = await (await new RankImage().setBackground(avatar))
-    .setBorder({ borderColor: "#666", borderRadius: 50, borderSize: 10 })
-    .setUser({ id: "812347817602842624" });
-  await writeFile("test.jpg", image.toBuffer(), "base64");
+  const background =
+    "https://www.mnrubber.com/wp-content/uploads/2020/09/mnrp-home.jpg";
+  const image = (
+    await new RankImage(
+      { id: "812347817602842624" },
+      100,
+      1000,
+      1
+    ).setBackground(background)
+  ).setBorder({ borderColor: "#666", borderRadius: 50, borderSize: 10 });
+
+  await writeFile("test.jpg", await image.toBuffer(), "base64");
 })();
